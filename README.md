@@ -6,12 +6,13 @@ It is a code for obtaining products which are:
 by searching keywords
 
 ## Requirements
-Python>=3.6.x
-ChromeDriver (https://chromedriver.chromium.org/)
+- Python>=3.6.x
+- ChromeDriver (https://chromedriver.chromium.org/)
 
 ## Create virtual environment
 ```sh
 python3 -m venv env
+source env/bin activate
 ```
 ## Install dependencies
 ```sh
