@@ -25,7 +25,7 @@ class AmazontrSpider(scrapy.Spider):
         self.keywords = [k.strip() for k in keywords.split(",")]
         self.min_page = int(min_page)
         self.max_page = int(max_page)
-        self.max_sellers_rank = max_sellers_rank
+        self.max_sellers_rank = int(max_sellers_rank)
         self._looked_products = []
 
     def start_requests(self):
