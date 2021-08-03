@@ -17,7 +17,7 @@ pip install -r requirements.txt
 ## Run
 ```sh
 cd amazonbot
-scrapy crawl amazontr -a keywords="boya kalemi" -a min_page=1 -a max_page=1 -a max_sellers_rank=100000 -o boya-kalemi.json
+scrapy crawl amazontr -a keywords="boya kalemi, cetvel" -a min_page=1 -a max_page=1 -a max_sellers_rank=100000 -o boya-kalemi.json
 ```
 
 ## Notes
