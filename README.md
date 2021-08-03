@@ -9,17 +9,20 @@ by searching keywords
 - Python>=3.6.x
 - ChromeDriver (https://chromedriver.chromium.org/)
 
-## Create virtual environment
-```sh
-python3 -m venv env
-source env/bin activate
-```
 ## Install dependencies
 ```sh
 pip install -r requirements.txt
 ```
+
 ## Run
 ```sh
 cd amazonbot
-scrapy crawl amazontr -a keywords="boya kalemi" -a min_page=1 -a max_page=1 max_sellers_rank=100000 -o boya-kalemi.json
+scrapy crawl amazontr -a keywords="boya kalemi" -a min_page=1 -a max_page=1 -a max_sellers_rank=100000 -o boya-kalemi.json
 ```
+
+## Notes
+For Linux/Mac OS users
+chromedriver.exe must be placed in /usr/local/bin or /usr/local/bin path.
+For Windows user
+chromedriver.exe path must be defined using SELENIUM_DRIVER_EXECUTABLE_PATH in amazonbot/amazonbot/settings
+SELENIUM_DRIVER_EXECUTABLE_PATH = "path\\to\\<chromedriver.exe"
