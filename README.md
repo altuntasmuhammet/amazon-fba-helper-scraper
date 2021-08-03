@@ -2,7 +2,7 @@
 ## Description
 It is a code for obtaining products which are:
 - sold by Amazon in amazon.com.tr
-- sellers rank's are below defined limit ({max_sellers_rank})
+- sellers rank's are below defined limit in the US({max_sellers_rank})
 by searching keywords
 
 ## Requirements
