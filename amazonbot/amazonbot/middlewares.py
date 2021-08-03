@@ -118,7 +118,6 @@ class AmazonbotUsLocationSeleniumMiddleware(SeleniumMiddleware):
         self.driver.get("https://amazon.com")
         time.sleep(5)
         address_text = self.driver.find_element_by_xpath("//span[@id='glow-ingress-line2']")
-        print("*************ADDRESS_TEXT:*************", address_text)
         address_text.click()
         while(True):
             zipcode_inputs = self.driver.find_elements_by_xpath("//input[@data-action='GLUXPostalInputAction']")

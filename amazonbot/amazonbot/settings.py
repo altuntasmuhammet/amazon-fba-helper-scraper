@@ -52,6 +52,7 @@ ROBOTSTXT_OBEY = True
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
 #    'amazonbot.middlewares.AmazonbotDownloaderMiddleware': 543,
+#    'scrapy_selenium.SeleniumMiddleware': 800
    'amazonbot.middlewares.AmazonbotUsLocationSeleniumMiddleware': 800,
 }
 
