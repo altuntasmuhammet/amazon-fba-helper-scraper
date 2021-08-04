@@ -6,6 +6,7 @@ import urllib.parse
 import logging
 
 from amazonbot import utils
+from amazonbot import helpers
 
 
 KEYWORD = "kalem"
@@ -20,9 +21,10 @@ class AmazontrSpider(scrapy.Spider):
     COUNT_MAX = float('inf')
     # start_urls = ['http://amazon.com.tr/']
 
-    def __init__(self, keywords="", min_page=1, max_page=200, max_sellers_rank=100000, *args, **kwargs):
+    def __init__(self, keywords="", url="", min_page=1, max_page=200, max_sellers_rank=100000, *args, **kwargs):
         super(AmazontrSpider, self).__init__(*args, **kwargs)
         self.keywords = [k.strip() for k in keywords.split(",")]
+        self.url = url
         self.min_page = int(min_page)
         self.max_page = int(max_page)
         self.max_sellers_rank = int(max_sellers_rank)
@@ -30,12 +32,19 @@ class AmazontrSpider(scrapy.Spider):
 
     def start_requests(self):
         title_query_url_template = "https://www.amazon.com.tr/s?k={keyword}&page={page}"
-        for keyword in self.keywords:
-            encoded_keyword = urllib.parse.quote(keyword)
-            for page in range(self.min_page, self.max_page+1):
-                url = title_query_url_template.format(
-                    keyword=encoded_keyword, page=page)
-                # yield scrapy.Request(url=url, callback=self.parse_products, headers=self.headers)
+        if self.keywords:
+            for keyword in self.keywords:
+                encoded_keyword = urllib.parse.quote(keyword)
+                for page in range(self.min_page, self.max_page+1):
+                    url = title_query_url_template.format(
+                        keyword=encoded_keyword, page=page)
+                    # yield scrapy.Request(url=url, callback=self.parse_products, headers=self.headers)
+                    yield SeleniumRequest(url=url, callback=self.parse_products)
+        if self.link:
+            params = {}
+            for page in range(self.min_page, self.max_page):
+                params["page"] = page
+                url = helpers.update_url_query(url, params)
                 yield SeleniumRequest(url=url, callback=self.parse_products)
 
     def parse_products(self, response):
@@ -57,7 +66,8 @@ class AmazontrSpider(scrapy.Spider):
         # parse buybox seller name
         sold_by_elements = response.xpath("//*[@id='aod-offer-soldBy']")
         if sold_by_elements:
-            texts = [text for text in sold_by_elements[0].xpath(".//text()").extract() if text.strip()]
+            texts = [text for text in sold_by_elements[0].xpath(
+                ".//text()").extract() if text.strip()]
             seller_name = texts[1]
         else:
             seller_name = ""
