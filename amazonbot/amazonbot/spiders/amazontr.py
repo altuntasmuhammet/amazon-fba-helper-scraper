@@ -44,7 +44,7 @@ class AmazontrSpider(scrapy.Spider):
             params = {}
             for page in range(self.min_page, self.max_page):
                 params["page"] = page
-                url = helpers.update_url_query(url, params)
+                url = helpers.update_url_query(self.url, params)
                 yield SeleniumRequest(url=url, callback=self.parse_products)
 
     def parse_products(self, response):
