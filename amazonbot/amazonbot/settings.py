@@ -53,7 +53,7 @@ ROBOTSTXT_OBEY = True
 DOWNLOADER_MIDDLEWARES = {
 #    'amazonbot.middlewares.AmazonbotDownloaderMiddleware': 543,
 #    'scrapy_selenium.SeleniumMiddleware': 800
-   'amazonbot.middlewares.AmazonbotUsLocationSeleniumMiddleware': 800,
+   'amazonbot.middlewares.AmazonbotUsLocationSeleniumMiddleware': 300,
 }
 
 # Enable or disable extensions
@@ -64,9 +64,11 @@ DOWNLOADER_MIDDLEWARES = {
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
+ITEM_PIPELINES = {
 #    'amazonbot.pipelines.AmazonbotPipeline': 300,
-#}
+    'amazonbot.pipelines.AmazonbotSellersRankFilterPipeline': 300,
+    'amazonbot.pipelines.AmazonbotFBAProfitabilityFilterPipeline': 400,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html

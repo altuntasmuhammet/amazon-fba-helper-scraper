@@ -5,7 +5,7 @@ from datetime import datetime
 import urllib.parse
 import logging
 
-from amazonbot.utils import get_sellers_rank
+from amazonbot import utils
 
 
 KEYWORD = "kalem"
@@ -20,7 +20,7 @@ class AmazontrSpider(scrapy.Spider):
     COUNT_MAX = float('inf')
     # start_urls = ['http://amazon.com.tr/']
 
-    def __init__(self, keywords="", min_page=1, max_page=200, max_sellers_rank=100000 ,*args, **kwargs):
+    def __init__(self, keywords="", min_page=1, max_page=200, max_sellers_rank=100000, *args, **kwargs):
         super(AmazontrSpider, self).__init__(*args, **kwargs)
         self.keywords = [k.strip() for k in keywords.split(",")]
         self.min_page = int(min_page)
@@ -40,7 +40,8 @@ class AmazontrSpider(scrapy.Spider):
 
     def parse_products(self, response):
         products = response.xpath("//div[starts-with(@data-asin,'B0')]")
-        product_url_template = "https://www.amazon.com.tr/dp/{asin}"
+        # product_url_template = "https://www.amazon.com.tr/dp/{asin}"
+        product_url_template = "https://www.amazon.com.tr/gp/aod/ajax/ref=aod_f_used?asin={asin}&m=&pinnedofferhash=&qid=&smid=&sourcecustomerorglistid=&sourcecustomerorglistitemid=&sr=&pc=dp&pageno=1&filters={{%22new%22:true}}"
         for product in products:
             asin = product.attrib['data-asin'].strip()
             url = product_url_template.format(asin=asin)
@@ -53,36 +54,42 @@ class AmazontrSpider(scrapy.Spider):
     def parse_tr_product_data(self, response):
         asin = response.meta.get('asin', None)
         logging.info(str('tabular-buybox-container' in str(response.body)))
-        # Amazon Seller Filter
-        buybox_columns = response.xpath(
-            "//*[@class='tabular-buybox-text']/text()").getall()
-        if buybox_columns:
-            buybox_column_text = buybox_columns[1]
-            seller_name = buybox_column_text.strip()
-            if 'amazon' in seller_name.lower():
-                url = f"https://www.amazon.com/dp/{asin}"
-                yield SeleniumRequest(url=url, callback=self.parse_us_product_data, meta={'asin': asin})
+        # parse buybox seller name
+        sold_by_elements = response.xpath("//*[@id='aod-offer-soldBy']")
+        if sold_by_elements:
+            texts = [text for text in sold_by_elements[0].xpath(".//text()").extract() if text.strip()]
+            seller_name = texts[1]
         else:
-            print("************************" " SELLER_NAME: ",
-                  None, "************************")
-            return None
-
+            seller_name = ""
+        # parse prices
+        prices = utils.get_lowest_product_prices_from_sellers_page(response)
+        if 'amazon' in seller_name.lower():
+            product_url_template = "https://www.amazon.com/dp/{asin}"
+            # product_url_template = "https://www.amazon.com/gp/aod/ajax/ref=aod_f_used?asin={asin}&m=&pinnedofferhash=&qid=&smid=&sourcecustomerorglistid=&sourcecustomerorglistitemid=&sr=&pc=dp&pageno=1&filters={%22new%22:true}"
+            url = product_url_template.format(asin=asin)
+            meta = {
+                "asin": asin,
+                "total_tr_price": prices[0] + prices[1] if prices else None
+            }
+            yield SeleniumRequest(url=url, callback=self.parse_us_product_data, meta=meta)
 
     def parse_us_product_data(self, response):
-        asin = response.meta.get('asin')
+        asin = response.meta.get("asin")
+        total_tr_price = response.meta.get("total_tr_price")
         # Check if product exists in US
         if response.status == 200:
-            sorryDiv = response.xpath("//img[contains(@alt,'Sorry! We could')]")
+            sorryDiv = response.xpath(
+                "//img[contains(@alt,'Sorry! We could')]")
             if sorryDiv:
                 return None
-        # Check product is in sellers_rank limit
-        # Sellers Rank Filter
-        sellers_rank = get_sellers_rank(response)
-        if not sellers_rank or sellers_rank > self.max_sellers_rank:
-            print("SELLERS_RANK:", sellers_rank)
-            return None
-        else:
-            print("SELLERS_RANK:", sellers_rank)
-            yield {
-                "asin": asin
-                }
+        # Parse product prices
+        prices = utils.get_product_prices_from_product_page(response)
+        total_us_price = prices[0] + prices[1] if prices else None
+        # Parse sellers rank
+        us_sellers_rank = utils.get_sellers_rank(response)
+        yield {
+            "asin": asin,
+            "total_tr_price": total_tr_price,
+            "total_us_price": total_us_price,
+            "us_sellers_rank": us_sellers_rank
+        }
