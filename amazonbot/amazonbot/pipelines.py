@@ -39,7 +39,8 @@ class AmazonbotFBAProfitabilityFilterPipeline:
     INCH_TO_CM = 2.54
     USD_TO_TRY = 8.5
     POUND_TO_KG = 0.4535923
-    COST_PER_W = 7 # Cost per weight as USD
+    AIR_COST_PER_W = 7 # Cost per weight as USD
+    SEA_COST_PER_W = 3 # Cost per weight as USD
     FBA_SELLING_FEE_RATE = 0.15
     MINIMUM_ALLOWED_NET_PROFIT = -2 # as USD
     def __init__(self):
@@ -78,7 +79,7 @@ class AmazonbotFBAProfitabilityFilterPipeline:
         product_length = float(self.driver.find_element_by_xpath("//*[@id='product-info-length']").text)
         product_width = float(self.driver.find_element_by_xpath("//*[@id='product-info-width']").text)
         product_height = float(self.driver.find_element_by_xpath("//*[@id='product-info-height']").text)
-        dimensional_weight = product_length * product_width * product_height / 5000
+        dimensional_weight = (product_length * self.INCH_TO_CM) * (product_width * self.INCH_TO_CM) * (product_height * self.INCH_TO_CM) / 5000
         product_weight = float(self.driver.find_element_by_xpath("//*[@id='product-info-weight']").text)
         max_product_weight = max(dimensional_weight, product_weight)
         # Product revenue
@@ -88,21 +89,39 @@ class AmazonbotFBAProfitabilityFilterPipeline:
         time.sleep(5)
         # Fees
         fba_fulfillment_fee = float(self.driver.find_element_by_xpath("//*[@id='afn-amazon-fulfillment-fees']").text)
-        ship_to_amazon_cost = self.COST_PER_W * max_product_weight
+        air_ship_to_amazon_cost = self.AIR_COST_PER_W * max_product_weight
+        sea_ship_to_amazon_cost = self.SEA_COST_PER_W * max_product_weight
         fba_charge = max(0.3, total_us_price*self.FBA_SELLING_FEE_RATE)
-        total_fulfillment_cost = ship_to_amazon_cost + fba_charge
+        air_total_fulfillment_cost = air_ship_to_amazon_cost + fba_charge
+        sea_total_fulfillment_cost = sea_ship_to_amazon_cost + fba_charge
         # Storage cost
         storage_cost = 0
         # Product cost
         product_cost = total_tr_price / self.USD_TO_TRY
         # Calculate Profitability
-        net_profit = revenue - fba_fulfillment_fee - total_fulfillment_cost - storage_cost - product_cost
-        if net_profit > self.MINIMUM_ALLOWED_NET_PROFIT:
+        air_net_profit = revenue - fba_fulfillment_fee - air_total_fulfillment_cost - storage_cost - product_cost
+        sea_net_profit = revenue - fba_fulfillment_fee - sea_total_fulfillment_cost - storage_cost - product_cost
+        air_roi = round(air_net_profit / (air_ship_to_amazon_cost+product_cost),2)
+        sea_roi = round(sea_net_profit / (sea_ship_to_amazon_cost+product_cost),2)
+        if air_net_profit > self.MINIMUM_ALLOWED_NET_PROFIT:
             return {
                 "asin": asin,
                 "total_tr_price": total_tr_price,
                 "total_us_price": total_us_price,
-                "us_sellers_rank": us_sellers_rank
+                "us_sellers_rank": us_sellers_rank,
+                "net_profit": air_net_profit,
+                "roi": air_roi,
+                "profitable_with": 'AIR_SHIPPING'
+            }
+        elif sea_net_profit > self.MINIMUM_ALLOWED_NET_PROFIT:
+            return {
+                "asin": asin,
+                "total_tr_price": total_tr_price,
+                "total_us_price": total_us_price,
+                "us_sellers_rank": us_sellers_rank,
+                "net_profit": sea_net_profit,
+                "roi": sea_roi,
+                "profitable_with": 'SEA_SHIPPING'
             }
         else:
-            raise DropItem(f"DROPPED - ASIN: {asin} - Product is not profitable, Net Profit: {net_profit}")
+            raise DropItem(f"DROPPED - ASIN: {asin} - Product is not profitable, Air Net Profit: {air_net_profit}, Sea Net Profit: {sea_net_profit}")
