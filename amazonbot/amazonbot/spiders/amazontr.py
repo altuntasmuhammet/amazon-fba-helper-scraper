@@ -23,7 +23,7 @@ class AmazontrSpider(scrapy.Spider):
 
     def __init__(self, keywords="", url="", min_page=1, max_page=200, max_sellers_rank=100000, *args, **kwargs):
         super(AmazontrSpider, self).__init__(*args, **kwargs)
-        self.keywords = [k.strip() for k in keywords.split(",")]
+        self.keywords = [k.strip() for k in keywords.split(",") if k.strip()]
         self.url = url
         self.min_page = int(min_page)
         self.max_page = int(max_page)
@@ -31,8 +31,8 @@ class AmazontrSpider(scrapy.Spider):
         self._looked_products = []
 
     def start_requests(self):
-        title_query_url_template = "https://www.amazon.com.tr/s?k={keyword}&page={page}"
         if self.keywords:
+            title_query_url_template = "https://www.amazon.com.tr/s?k={keyword}&page={page}"
             for keyword in self.keywords:
                 encoded_keyword = urllib.parse.quote(keyword)
                 for page in range(self.min_page, self.max_page+1):
@@ -40,7 +40,7 @@ class AmazontrSpider(scrapy.Spider):
                         keyword=encoded_keyword, page=page)
                     # yield scrapy.Request(url=url, callback=self.parse_products, headers=self.headers)
                     yield SeleniumRequest(url=url, callback=self.parse_products)
-        if self.link:
+        if self.url:
             params = {}
             for page in range(self.min_page, self.max_page):
                 params["page"] = page
