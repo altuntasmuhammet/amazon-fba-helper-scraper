@@ -39,7 +39,7 @@ class AmazonbotFBAProfitabilityFilterPipeline:
     INCH_TO_CM = 2.54
     USD_TO_TRY = 8.5
     POUND_TO_KG = 0.4535923
-    AIR_COST_PER_W = 7 # Cost per weight as USD
+    AIR_COST_PER_W = 5.5 # Cost per weight as USD
     SEA_COST_PER_W = 3 # Cost per weight as USD
     FBA_SELLING_FEE_RATE = 0.15
     MINIMUM_ALLOWED_NET_PROFIT = -2 # as USD
