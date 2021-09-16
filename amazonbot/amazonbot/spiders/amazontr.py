@@ -3,11 +3,14 @@ from scrapy_selenium import SeleniumRequest
 import time
 from datetime import datetime
 import urllib.parse
+from scrapy.utils.log import configure_logging
 import logging
 
 from amazonbot import utils
 from amazonbot import helpers
 
+
+configure_logging(settings={"LOG_FILE": "amazonbot.log"})
 
 KEYWORD = "kalem"
 
@@ -54,7 +57,6 @@ class AmazontrSpider(scrapy.Spider):
         for product in products:
             asin = product.attrib['data-asin'].strip()
             url = product_url_template.format(asin=asin)
-            print("product_url:", url)
             logging.info("product_url:" + url)
             self.count += 1
             if self.count < self.COUNT_MAX:
@@ -72,7 +74,7 @@ class AmazontrSpider(scrapy.Spider):
         else:
             seller_name = ""
         # parse prices
-        prices = utils.get_lowest_product_prices_from_sellers_page(response)
+        prices = utils.get_lowest_product_prices_from_tr_sellers_page(response)
         if 'amazon' in seller_name.lower():
             product_url_template = "https://www.amazon.com/dp/{asin}"
             # product_url_template = "https://www.amazon.com/gp/aod/ajax/ref=aod_f_used?asin={asin}&m=&pinnedofferhash=&qid=&smid=&sourcecustomerorglistid=&sourcecustomerorglistitemid=&sr=&pc=dp&pageno=1&filters={%22new%22:true}"
@@ -91,6 +93,10 @@ class AmazontrSpider(scrapy.Spider):
             sorryDiv = response.xpath(
                 "//img[contains(@alt,'Sorry! We could')]")
             if sorryDiv:
+                return None
+            if utils.cannot_be_shipped_from_us_product_page(response):
+                return None
+            if utils.has_no_buybox_in_us_product_page(response):
                 return None
         # Parse product prices
         prices = utils.get_product_prices_from_product_page(response)
