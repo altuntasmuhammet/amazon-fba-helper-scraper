@@ -141,7 +141,7 @@ def get_lowest_product_prices_from_tr_sellers_page(response):
                 main_price = price_whole_part + (price_fraction_part/100)
                 # Shipping
                 shipping_price_element_texts_1 = offer_element.xpath(
-                    ".//*[@id='dynamicDeliveryMessage' or contains(@class,'aod-delivery-promise')]//text()").extract()
+                    ".//*[@id='dynamicDeliveryMessage' or @class='a-row aod-delivery-promise']//text()").extract()
                 shipping_price_element_text_1 = ' '.join(
                     [s.strip() for s in shipping_price_element_texts_1 if s.strip()])
                 shipping_price_element_texts_2 = offer_element.xpath(
@@ -169,7 +169,7 @@ def get_lowest_product_prices_from_tr_sellers_page(response):
                     "TL", "")
                 shipping_price_element_text = shipping_price_element_text.replace(
                     ",", ".")
-                if re.search(r"kargo bedava", shipping_price_element_text, re.IGNORECASE):
+                if re.search(r"kargo bedava|ÜCRETSİZ", shipping_price_element_text, re.IGNORECASE):
                     shipping_price = 0
                 else:
                     shipping_price = extract_number_with_two_decimals(

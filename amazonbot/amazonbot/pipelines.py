@@ -10,6 +10,7 @@ from itemadapter import ItemAdapter
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from scrapy.exceptions import DropItem
+import chromedriver_autoinstaller
 import time
 
 
@@ -44,7 +45,8 @@ class AmazonbotFBAProfitabilityFilterPipeline:
     FBA_SELLING_FEE_RATE = 0.15
     MINIMUM_ALLOWED_NET_PROFIT = -2 # as USD
     def __init__(self):
-        self.driver = webdriver.Chrome()
+        chromedriver_executable_path = chromedriver_autoinstaller.install()
+        self.driver = webdriver.Chrome(executable_path=chromedriver_executable_path)
         self.fba_calculator_url = "https://sellercentral.amazon.com/hz/fba/profitabilitycalculator/index?lang=en_US"
 
     def process_item(self, item, spider):

@@ -92,7 +92,8 @@ ITEM_PIPELINES = {
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 from shutil import which
+import chromedriver_autoinstaller
 
 SELENIUM_DRIVER_NAME = 'chrome'
-SELENIUM_DRIVER_EXECUTABLE_PATH = which('chromedriver')
+SELENIUM_DRIVER_EXECUTABLE_PATH = chromedriver_autoinstaller.install()
 SELENIUM_DRIVER_ARGUMENTS=[]  # '--headless' if using chrome instead of firefox

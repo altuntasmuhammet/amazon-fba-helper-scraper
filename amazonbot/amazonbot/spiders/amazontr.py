@@ -3,16 +3,19 @@ from scrapy_selenium import SeleniumRequest
 import time
 from datetime import datetime
 import urllib.parse
-from scrapy.utils.log import configure_logging
 import logging
 
 from amazonbot import utils
 from amazonbot import helpers
 
 
-configure_logging(settings={"LOG_FILE": "amazonbot.log"})
-
 KEYWORD = "kalem"
+
+logging.basicConfig(
+    filename='log.txt',
+    format='%(levelname)s: %(message)s',
+    level=logging.INFO
+)
 
 
 class AmazontrSpider(scrapy.Spider):
@@ -22,6 +25,7 @@ class AmazontrSpider(scrapy.Spider):
     allowed_domains = ['amazon.com.tr', 'amazon.com']
     count = 0
     COUNT_MAX = float('inf')
+    logger = logging.getLogger("spider_amazontr")
     # start_urls = ['http://amazon.com.tr/']
 
     def __init__(self, keywords="", url="", min_page=1, max_page=200, max_sellers_rank=100000, *args, **kwargs):
@@ -73,13 +77,13 @@ class AmazontrSpider(scrapy.Spider):
             seller_name = texts[1]
         else:
             seller_name = ""
-        logging.info(f"{asin} - TR Seller Name: {seller_name}")
+        self.logger.info(f"{asin} - TR Seller Name: {seller_name}")
         # parse prices
         try:
             prices = utils.get_lowest_product_prices_from_tr_sellers_page(response)
-            logging.info(f"{asin} - TR Prices: {prices}")
+            self.logger.info(f"{asin} - TR Prices: {prices}")
         except Exception as ex:
-            logging.info(f"{asin} - TR Prices Error: {str(ex)}")
+            self.logger.info(f"{asin} - TR Prices Error: {str(ex)}")
             raise ex
         if 'amazon' in seller_name.lower():
             product_url_template = "https://www.amazon.com/dp/{asin}"
@@ -107,17 +111,17 @@ class AmazontrSpider(scrapy.Spider):
         # Parse product prices
         try:
             prices = utils.get_product_prices_from_product_page(response)
-            logging.info(f"{asin} - US Prices - {prices}")
+            self.logger.info(f"{asin} - US Prices - {prices}")
         except Exception as ex:
-            logging.error(f"{asin} - US Prices Error - {str(ex)}")
+            self.logger.error(f"{asin} - US Prices Error - {str(ex)}")
             raise ex
         total_us_price = prices[0] + prices[1] if prices else None
         # Parse sellers rank
         try:
             us_sellers_rank = utils.get_sellers_rank(response)
-            logging.info(f"{asin} - US Sales Rank - {us_sellers_rank}")
+            self.logger.info(f"{asin} - US Sales Rank - {us_sellers_rank}")
         except Exception as ex:
-            logging.error(f"{asin} - US Sales Rank Error - {str(ex)}")
+            self.logger.error(f"{asin} - US Sales Rank Error - {str(ex)}")
             raise ex
         yield {
             "asin": asin,
